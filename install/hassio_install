@@ -14,7 +14,7 @@ URL_SYNO_SERVICE_APPARMOR="https://raw.githubusercontent.com/1ne8ight7even/hassi
 URL_APPARMOR_PROFILE="http://s3.amazonaws.com/hassio-version/apparmor.txt"
 
 # Check env
-command -v systemctl > /dev/null 2>&1 || command -v synoservicectl > /dev/null 2>&1 || { echo "[Error] Only systemd or synology is supported!"; exit 1; }
+(command -v systemctl || command -v synoservicectl) > /dev/null 2>&1 || { echo "[Error] Only systemd or synology is supported!"; exit 1; }
 command -v docker > /dev/null 2>&1 || { echo "[Error] Please install docker first"; exit 1; }
 command -v jq > /dev/null 2>&1 || { echo "[Error] Please install jq first"; exit 1; }
 command -v curl > /dev/null 2>&1 || { echo "[Error] Please install curl first"; exit 1; }
@@ -113,7 +113,7 @@ docker tag "$HASSIO_DOCKER:$HASSIO_VERSION" "$HASSIO_DOCKER:latest" > /dev/null
 echo "[Info] Install supervisor startup scripts"
 curl -sL ${URL_BIN_HASSIO} > /usr/sbin/hassio-supervisor
 chmod a+x /usr/sbin/hassio-supervisor
-if command -v synoservicectl then
+if command -v synoservicectl > /dev/null 2>&1; then
     curl -sL ${URL_SYNO_SERVICE_HASSIO} > /etc/init/hassio-apparmor.conf
 else
     curl -sL ${URL_SERVICE_HASSIO} > /etc/systemd/system/hassio-supervisor.service
@@ -130,7 +130,7 @@ if command -v apparmor_parser > /dev/null 2>&1; then
     curl -sL ${URL_BIN_APPARMOR} > /usr/sbin/hassio-apparmor
     curl -sL ${URL_APPARMOR_PROFILE} > ${DATA_SHARE}/apparmor/hassio-supervisor
     chmod a+x /usr/sbin/hassio-apparmor
-    if command -v synoservicectl then
+    if command -v synoservicectl > /dev/null 2>&1; then
         curl -sL ${URL_SYNO_SERVICE_APPARMOR} > /etc/init/hassio-apparmor.conf
 
         synoservicectl --start hassio-apparmor
@@ -145,7 +145,7 @@ fi
 ##
 # Init system
 echo "[Info] Run Hass.io"
-if command -v synoservicectl then
+if command -v synoservicectl > /dev/null 2>&1; then
     synoservicectl --start hassio-supervisor
 else
     systemctl start hassio-supervisor.service
